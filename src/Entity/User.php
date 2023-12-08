@@ -37,7 +37,7 @@ class User
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[Groups(["getUsers"])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?customer $customer = null;
+    private ?Customer $customer = null;
 
     public function getId(): string
     {
