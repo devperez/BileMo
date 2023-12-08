@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 
 class UserController extends AbstractController
 {
@@ -48,9 +50,19 @@ class UserController extends AbstractController
     public function createUser(Request $request,
     SerializerInterface $serializer,
     EntityManagerInterface $emi,
-    UrlGeneratorInterface $urlGenerator): JsonResponse
+    UrlGeneratorInterface $urlGenerator,
+    ValidatorInterface $validator): JsonResponse
     {
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+
+        // Data validation
+        $errors = $validator->validate($user);
+        if ($errors->count() > 0)
+        {
+            return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
+        
+
         $customer = $emi->getRepository(Customer::class)->find('6495c094-614e-4162-8dbb-b8f60197e55d');
         $user->setCustomer($customer);
 
