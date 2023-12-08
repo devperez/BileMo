@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Ramsey\Uuid\UuidInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -20,22 +21,25 @@ class User
 
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
+    #[Assert\NotBlank(message: "Le prénom est obligatoire")]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
+    #[Assert\NotBlank(message: "Le nom de famille est obligatoire")]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
+    #[Assert\NotBlank(message: "Le nom d'utilisateur est obligatoire")]
     private ?string $userName = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(["getUsers"])]
+    #[Assert\NotBlank(message: "L'email est obligatoire")]
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[Groups(["getUsers"])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Customer $customer = null;
 
