@@ -35,7 +35,6 @@ class User
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
-    #[Groups(["getUsers"])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Customer $customer = null;
 
