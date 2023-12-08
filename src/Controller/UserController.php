@@ -15,6 +15,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+
 class UserController extends AbstractController
 {
     #[Route('/api/users/customers/{id}', name: 'CustomerUserList', methods: ['GET'])]
@@ -61,6 +62,7 @@ class UserController extends AbstractController
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
         
+
         $customer = $emi->getRepository(Customer::class)->find('6495c094-614e-4162-8dbb-b8f60197e55d');
         $user->setCustomer($customer);
 
