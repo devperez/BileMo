@@ -25,6 +25,7 @@ class UserController extends AbstractController
         return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
     }
 
+    //TODO: à modifier une fois l'authentification faite
     #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'])]
     public function deleteUser(User $user, EntityManagerInterface $emi): Response
     {
@@ -42,6 +43,7 @@ class UserController extends AbstractController
         return new JsonResponse($jsonUser, Response::HTTP_OK, []);
     }
 
+    //TODO: à modifier une fois l'authentification faite
     #[Route('api/users', name:"createUser", methods:['POST'])]
     public function createUser(Request $request,
     SerializerInterface $serializer,
