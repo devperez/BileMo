@@ -42,7 +42,7 @@ class UserController extends AbstractController
     {
         $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
 
-        return new JsonResponse($jsonUser, Response::HTTP_OK, []);
+        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
     }
 
     //TODO: à modifier une fois l'authentification faite
