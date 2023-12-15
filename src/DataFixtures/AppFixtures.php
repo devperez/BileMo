@@ -8,9 +8,17 @@ use App\Entity\User;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Faker\Factory;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+    private $passwordHasher;
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    {
+        $this->passwordHasher = $passwordHasher;
+    }
+
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create();
@@ -32,24 +40,32 @@ class AppFixtures extends Fixture
         $customer = new Customer();
         $customer->setName('Orange');
         $customer->setEmail('orange@mail.fr');
+        $customer->setPassword($this->passwordHasher->hashPassword($customer, '123456'));
+        $customer->setRoles(["customer"]);
         $manager->persist($customer);
 
         // 2
         $customer = new Customer();
         $customer->setName('SFR');
         $customer->setEmail('sfr@mail.fr');
+        $customer->setPassword($this->passwordHasher->hashPassword($customer, '123456'));
+        $customer->setRoles(["customer"]);
         $manager->persist($customer);
 
         // 3
         $customer = new Customer();
         $customer->setName('Bouygues Telecom');
         $customer->setEmail('bouygues@mail.fr');
+        $customer->setPassword($this->passwordHasher->hashPassword($customer, '123456'));
+        $customer->setRoles(["customer"]);
         $manager->persist($customer);
 
         // 4
         $customer = new Customer();
         $customer->setName('Free');
         $customer->setEmail('free@mail.fr');
+        $customer->setPassword($this->passwordHasher->hashPassword($customer, '123456'));
+        $customer->setRoles(["customer"]);
         $manager->persist($customer);
 
         $manager->flush();

@@ -2,17 +2,15 @@
 
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use App\Repository\CustomerRepository;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Ramsey\Uuid\UuidInterface;
 
-
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
-class Customer
+class Customer implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -23,18 +21,19 @@ class Customer
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-    #[ORM\OneToMany(mappedBy: 'customer', targetEntity: User::class)]
-    private Collection $users;
+    #[ORM\Column]
+    private array $roles = [];
 
-    public function __construct()
-    {
-        $this->users = new ArrayCollection();
-    }
+    /**
+     * @var string The hashed password
+     */
+    #[ORM\Column]
+    private ?string $password = null;
 
-    public function getId(): ?string
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -64,32 +63,55 @@ class Customer
     }
 
     /**
-     * @return Collection<int, User>
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
      */
-    public function getUsers(): Collection
+    public function getUserIdentifier(): string
     {
-        return $this->users;
+        return (string) $this->email;
     }
 
-    public function addUser(User $user): static
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
-            $user->setCustomer($this);
-        }
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): static
+    {
+        $this->roles = $roles;
 
         return $this;
     }
 
-    public function removeUser(User $user): static
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+    public function getPassword(): string
     {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getCustomer() === $this) {
-                $user->setCustomer(null);
-            }
-        }
+        return $this->password;
+    }
+
+    public function setPassword(string $password): static
+    {
+        $this->password = $password;
 
         return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 }
