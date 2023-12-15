@@ -4,26 +4,50 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Customer;
+use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
-
+use function Symfony\Component\DependencyInjection\Loader\Configurator\env;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class UserController extends AbstractController
 {
+    private $jwtManager;
+    private $tokenStorageInterface;
+
+    public function __construct(TokenStorageInterface $tokenStorageInterface, JWTTokenManagerInterface $jwtManager)
+    {
+        $this->jwtManager = $jwtManager;
+        $this->tokenStorageInterface = $tokenStorageInterface;
+    }
+
     /**
      * Fetch the users of an authenticated customer
      */
-    #[Route('/api/users/{id}', name: 'CustomerUserList', methods: ['GET'])]
-    public function getCustomerUserList(Customer $customer, SerializerInterface $serializer): JsonResponse
+    #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'])]
+    public function getCustomerUserList(CustomerRepository $customerRepository, Request $request, SerializerInterface $serializer): JsonResponse
     {
+        $token = $request->headers->get('Authorization');
+        if ($token && str_starts_with($token, 'bearer'))
+        {
+            try {
+                $decodedToken = $this->jwtManager->decode($this->tokenStorageInterface->getToken());
+                $customerMail = $decodedToken['username'];
+            } catch (\Exception $e) {
+                return new JsonResponse(['message' => 'Token decoding error'], Response::HTTP_UNAUTHORIZED);
+            }
+        }
+        $customer = $customerRepository->findOneBy(['email' => $customerMail]);
+
         $users = $customer->getUsers();
         $jsonUsersList = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
 
