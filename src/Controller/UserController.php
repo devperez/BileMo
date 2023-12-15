@@ -18,7 +18,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserController extends AbstractController
 {
-    #[Route('/api/users/customers/{id}', name: 'CustomerUserList', methods: ['GET'])]
+    /**
+     * Fetch the users of an authenticated customer
+     */
+    #[Route('/api/users/{id}', name: 'CustomerUserList', methods: ['GET'])]
     public function getCustomerUserList(Customer $customer, SerializerInterface $serializer): JsonResponse
     {
         $users = $customer->getUsers();
@@ -27,7 +30,26 @@ class UserController extends AbstractController
         return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
     }
 
-    //TODO: à modifier une fois l'authentification faite
+    /**
+     * Fetch a user of an authenticated customer
+     */
+    #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'])]
+    public function getUserDetail(User $user, SerializerInterface $serializer): JsonResponse
+    {
+        $authenticatedCustomer = $this->getUser();
+        
+        if ($authenticatedCustomer !== $user->getCustomer()) {
+            return new JsonResponse(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
+        }
+        
+        $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
+
+        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
+    }
+
+    /**
+     * Delete a user of an authenticated customer
+     */
     #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'])]
     public function deleteUser(User $user, EntityManagerInterface $emi): Response
     {
@@ -37,13 +59,6 @@ class UserController extends AbstractController
         return $this->json(null, Response::HTTP_NO_CONTENT, []);
     }
 
-    #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'])]
-    public function getPhoneDetail(User $user, SerializerInterface $serializer): JsonResponse
-    {
-        $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
-
-        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
-    }
 
     //TODO: à modifier une fois l'authentification faite
     #[Route('api/users', name:"createUser", methods:['POST'])]
