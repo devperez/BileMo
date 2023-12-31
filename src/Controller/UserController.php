@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Customer;
+use App\Repository\UserRepository;
 use App\Repository\CustomerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,7 +35,7 @@ class UserController extends AbstractController
      * Fetch the users of an authenticated customer
      */
     #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'])]
-    public function getCustomerUserList(CustomerRepository $customerRepository, Request $request, SerializerInterface $serializer): JsonResponse
+    public function getCustomerUserList(CustomerRepository $customerRepository, Request $request, SerializerInterface $serializer): Response
     {
         $token = $request->headers->get('Authorization');
         if ($token && str_starts_with($token, 'bearer'))
@@ -51,16 +52,33 @@ class UserController extends AbstractController
         $users = $customer->getUsers();
         $jsonUsersList = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
 
-        return new JsonResponse($jsonUsersList, Response::HTTP_OK, [], true);
+        return new Response($jsonUsersList, Response::HTTP_OK, ['content-Type' => 'application/json']);
     }
 
     /**
      * Fetch a user of an authenticated customer
      */
     #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'])]
-    public function getUserDetail(User $user, SerializerInterface $serializer): JsonResponse
+    public function getUserDetail(Request $request, CustomerRepository $customerRepository, UserRepository $userRepository, SerializerInterface $serializer, $id): Response
     {
-        $authenticatedCustomer = $this->getUser();
+        $token = $request->headers->get('Authorization');
+        if ($token && str_starts_with($token, 'bearer'))
+        {
+            try {
+                $decodedToken = $this->jwtManager->decode($this->tokenStorageInterface->getToken());
+                $customerMail = $decodedToken['username'];
+            } catch (\Exception $e) {
+                return new JsonResponse(['message' => 'Erreur relative au token'], Response::HTTP_UNAUTHORIZED);
+            }
+        }
+        // Fetch the User entity manually using the UserRepository
+        $user = $userRepository->find($id);
+        // Check if the User entity was found
+        if (!$user) {
+            return new JsonResponse(['message' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }
+        
+        $authenticatedCustomer = $customerRepository->findOneBy(['email' => $customerMail]);
         
         if ($authenticatedCustomer !== $user->getCustomer()) {
             return new JsonResponse(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
@@ -68,15 +86,39 @@ class UserController extends AbstractController
         
         $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
 
-        return new JsonResponse($jsonUser, Response::HTTP_OK, [], true);
+        return new Response($jsonUser, Response::HTTP_OK, ['content-Type' => 'application/json']);
     }
 
     /**
      * Delete a user of an authenticated customer
      */
     #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'])]
-    public function deleteUser(User $user, EntityManagerInterface $emi): Response
+    public function deleteUser(Request $request, UserRepository $userRepository, CustomerRepository $customerRepository, $id, EntityManagerInterface $emi): Response
     {
+        $token = $request->headers->get('Authorization');
+        if ($token && str_starts_with($token, 'bearer'))
+        {
+            try {
+                $decodedToken = $this->jwtManager->decode($this->tokenStorageInterface->getToken());
+                $customerMail = $decodedToken['username'];
+            } catch (\Exception $e) {
+                return new JsonResponse(['message' => 'Erreur relative au token'], Response::HTTP_UNAUTHORIZED);
+            }
+        }
+
+        // Fetch the User entity manually using the UserRepository
+        $user = $userRepository->find($id);
+        // Check if the User entity was found
+        if (!$user) {
+            return new JsonResponse(['message' => 'Utilisateur non trouvé.'], Response::HTTP_NOT_FOUND);
+        }
+        
+        $authenticatedCustomer = $customerRepository->findOneBy(['email' => $customerMail]);
+        
+        if ($authenticatedCustomer !== $user->getCustomer()) {
+            return new JsonResponse(['message' => 'Accès interdit.'], Response::HTTP_FORBIDDEN);
+        }
+
         $emi->remove($user);
         $emi->flush();
 
@@ -84,14 +126,25 @@ class UserController extends AbstractController
     }
 
 
-    //TODO: à modifier une fois l'authentification faite
     #[Route('api/users', name:"createUser", methods:['POST'])]
     public function createUser(Request $request,
     SerializerInterface $serializer,
+    CustomerRepository $customerRepository,
     EntityManagerInterface $emi,
     UrlGeneratorInterface $urlGenerator,
-    ValidatorInterface $validator): JsonResponse
+    ValidatorInterface $validator): Response
     {
+        $token = $request->headers->get('Authorization');
+        if ($token && str_starts_with($token, 'bearer'))
+        {
+            try {
+                $decodedToken = $this->jwtManager->decode($this->tokenStorageInterface->getToken());
+                $customerMail = $decodedToken['username'];
+            } catch (\Exception $e) {
+                return new JsonResponse(['message' => 'Erreur relative au token'], Response::HTTP_UNAUTHORIZED);
+            }
+        }
+
         $user = $serializer->deserialize($request->getContent(), User::class, 'json');
 
         // Data validation
@@ -102,7 +155,7 @@ class UserController extends AbstractController
         }
         
 
-        $customer = $emi->getRepository(Customer::class)->find('6495c094-614e-4162-8dbb-b8f60197e55d');
+        $customer = $customerRepository->findOneBy(['email' => $customerMail]);
         $user->setCustomer($customer);
 
         $emi->persist($user);
@@ -111,6 +164,6 @@ class UserController extends AbstractController
         $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
 
         $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-        return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["Location" => $location], true);
+        return new Response($jsonUser, Response::HTTP_CREATED, ["Location" => $location, 'content-Type' => 'application/json']);
     }
 }
