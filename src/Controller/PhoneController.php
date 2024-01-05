@@ -37,6 +37,7 @@ class PhoneController extends AbstractController
                 $phoneList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit){
                     echo ("l'élément n'est pas encore en cache ! \n");
                     $item->tag('phonesCache');
+                    $item->expiresAfter(60);
                     return $phoneRepository->findAllWithPagination($page, $limit);
                 });
                 return $this->json($phoneList, Response::HTTP_OK, []);                
