@@ -16,6 +16,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Service\JwtTokenService;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class UserController extends AbstractController
 {
@@ -30,23 +32,32 @@ class UserController extends AbstractController
      * Fetch the users of an authenticated customer
      */
     #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'])]
-    public function getCustomerUserList(UserRepository $userRepository, CustomerRepository $customerRepository, Request $request, SerializerInterface $serializer): Response
+    public function getCustomerUserList(UserRepository $userRepository,
+    CustomerRepository $customerRepository,
+    Request $request,
+    SerializerInterface $serializer,
+    TagAwareCacheInterface $cache): Response
     {
         try {
             $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
-            $customer = $customerRepository->findOneBy(['email' => $customerMail]);
-            $page = $request->get('page', 1);
-            $limit = $request->get('limit', 5);
-            $usersList = $userRepository->findAllWithPagination($page, $limit);
-
-            $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
+            $authenticatedCustomer = $customerRepository->findOneBy(['email' => $customerMail]);
+            if ($customerMail)
+            {
+                $page = $request->get('page', 1);
+                $limit = $request->get('limit', 5);
+                $idCache = "CustomerUserList-".$page."-".$limit;
+                $usersList = $cache->get($idCache, function (ItemInterface $item) use ($authenticatedCustomer, $userRepository, $page, $limit){
+                    echo ("Cette liste n'est pas encore mise en cache\n");
+                    $item->tag('usersCache');
+                    return $userRepository->findAllWithPaginationByCustomer($authenticatedCustomer, $page, $limit);
+                });
+                $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
             
-            return new Response($jsonUsersList, Response::HTTP_OK, ['content-Type' => 'application/json']);
+                return new Response($jsonUsersList, Response::HTTP_OK, ['content-Type' => 'application/json']);
+            }
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
-
-
     }
 
     /**
@@ -82,7 +93,12 @@ class UserController extends AbstractController
      * Delete a user of an authenticated customer
      */
     #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'])]
-    public function deleteUser(Request $request, UserRepository $userRepository, CustomerRepository $customerRepository, $id, EntityManagerInterface $emi): Response
+    public function deleteUser(Request $request,
+    UserRepository $userRepository,
+    CustomerRepository $customerRepository,
+    $id,
+    EntityManagerInterface $emi,
+    TagAwareCacheInterface $cache): Response
     {
         try {
             $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
@@ -99,6 +115,7 @@ class UserController extends AbstractController
                 if ($authenticatedCustomer !== $user->getCustomer()) {
                     return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
                 }
+                $cache->invalidateTags(['usersCache']);
                 $emi->remove($user);
                 $emi->flush();
                 return $this->json(null, Response::HTTP_NO_CONTENT, []);
@@ -109,7 +126,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Create a user and attach him to a customer
+     * Create and attach a customer to a user
      */
     #[Route('api/users', name:"createUser", methods:['POST'])]
     public function createUser(Request $request,
@@ -117,7 +134,8 @@ class UserController extends AbstractController
     CustomerRepository $customerRepository,
     EntityManagerInterface $emi,
     UrlGeneratorInterface $urlGenerator,
-    ValidatorInterface $validator): Response
+    ValidatorInterface $validator,
+    TagAwareCacheInterface $cache): Response
     {
         try {
             $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
@@ -130,6 +148,7 @@ class UserController extends AbstractController
                 {
                     return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
                 }
+                $cache->invalidateTags(['usersCache']);
                 $customer = $customerRepository->findOneBy(['email' => $customerMail]);
                 $user->setCustomer($customer);
                 $emi->persist($user);
