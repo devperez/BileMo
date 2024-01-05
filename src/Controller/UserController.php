@@ -30,13 +30,16 @@ class UserController extends AbstractController
      * Fetch the users of an authenticated customer
      */
     #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'])]
-    public function getCustomerUserList(CustomerRepository $customerRepository, Request $request, SerializerInterface $serializer): Response
+    public function getCustomerUserList(UserRepository $userRepository, CustomerRepository $customerRepository, Request $request, SerializerInterface $serializer): Response
     {
         try {
             $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
             $customer = $customerRepository->findOneBy(['email' => $customerMail]);
-            $users = $customer->getUsers();
-            $jsonUsersList = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 5);
+            $usersList = $userRepository->findAllWithPagination($page, $limit);
+
+            $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
             
             return new Response($jsonUsersList, Response::HTTP_OK, ['content-Type' => 'application/json']);
         } catch (\Exception $e) {
@@ -105,7 +108,9 @@ class UserController extends AbstractController
         }
     }
 
-
+    /**
+     * Create a user and attach him to a customer
+     */
     #[Route('api/users', name:"createUser", methods:['POST'])]
     public function createUser(Request $request,
     SerializerInterface $serializer,
