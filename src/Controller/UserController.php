@@ -40,16 +40,18 @@ class UserController extends AbstractController
     {
         try {
             $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
-            //$authenticatedCustomer = $customerRepository->findOneBy(['id' => $customerId]);
-            echo $customerId;
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
             $idCache = "CustomerUserList-".$page."-".$limit.$customerId;
-            $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit){
-                echo ("Cette liste n'est pas encore mise en cache\n");
-                $item->tag('usersCache');
-                return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
-            });
+            if ($page > 0 && $limit > 0 && $limit <= 50)
+            {
+                $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit){
+                    $item->tag('usersCache');
+                    return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
+                });
+            } else {
+                return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
+            }
             $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
             
             return new Response($jsonUsersList, Response::HTTP_OK, ['content-Type' => 'application/json']);
