@@ -39,15 +39,16 @@ class UserController extends AbstractController
     TagAwareCacheInterface $cache): Response
     {
         try {
-            $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
-            $authenticatedCustomer = $customerRepository->findOneBy(['email' => $customerMail]);
+            $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
+            //$authenticatedCustomer = $customerRepository->findOneBy(['id' => $customerId]);
+            echo $customerId;
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
-            $idCache = "CustomerUserList-".$page."-".$limit;
-            $usersList = $cache->get($idCache, function (ItemInterface $item) use ($authenticatedCustomer, $userRepository, $page, $limit){
+            $idCache = "CustomerUserList-".$page."-".$limit.$customerId;
+            $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit){
                 echo ("Cette liste n'est pas encore mise en cache\n");
                 $item->tag('usersCache');
-                return $userRepository->findAllWithPaginationByCustomer($authenticatedCustomer, $page, $limit);
+                return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
             });
             $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
             
@@ -64,14 +65,14 @@ class UserController extends AbstractController
     public function getUserDetail(Request $request, CustomerRepository $customerRepository, UserRepository $userRepository, SerializerInterface $serializer, $id): Response
     {
         try {
-            $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
+            $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
             // Fetch the User entity manually using the UserRepository
             $user = $userRepository->find($id);
             // Check if the User entity was found
             if (!$user) {
                 return new Response('Utilisateur non trouvé.', Response::HTTP_NOT_FOUND);
             }
-            $authenticatedCustomer = $customerRepository->findOneBy(['email' => $customerMail]);
+            $authenticatedCustomer = $customerRepository->findOneBy(['id' => $customerId]);
             if ($authenticatedCustomer !== $user->getCustomer()) {
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
             }
@@ -95,14 +96,14 @@ class UserController extends AbstractController
     TagAwareCacheInterface $cache): Response
     {
         try {
-            $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
+            $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
             // Fetch the User entity manually using the UserRepository
             $user = $userRepository->find($id);
             // Check if the User entity was found
             if (!$user) {
                 return new Response('Utilisateur non trouvé.', Response::HTTP_NOT_FOUND);
             }
-            $authenticatedCustomer = $customerRepository->findOneBy(['email' => $customerMail]);
+            $authenticatedCustomer = $customerRepository->findOneBy(['id' => $customerId]);
 
             if ($authenticatedCustomer !== $user->getCustomer()) {
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
@@ -129,7 +130,7 @@ class UserController extends AbstractController
     TagAwareCacheInterface $cache): Response
     {
         try {
-            $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
+            $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
             $user = $serializer->deserialize($request->getContent(), User::class, 'json');
             // Data validation
             $errors = $validator->validate($user);
@@ -138,7 +139,7 @@ class UserController extends AbstractController
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
             $cache->invalidateTags(['usersCache']);
-            $customer = $customerRepository->findOneBy(['email' => $customerMail]);
+            $customer = $customerRepository->findOneBy(['id' => $customerId]);
             $user->setCustomer($customer);
             $emi->persist($user);
             $emi->flush();
