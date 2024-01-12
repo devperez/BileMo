@@ -7,7 +7,17 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\PhoneRepository;
 use Ramsey\Uuid\Doctrine\UuidGenerator;
 use Ramsey\Uuid\UuidInterface;
+use Hateoas\Configuration\Annotation as Hateoas;
 
+/**
+ * @Hateoas\Relation(
+ *  "self",
+ *  href = @Hateoas\Route(
+ *      "detailPhone",
+ *      parameters = { "id" = "expr(object.getId())"}
+ *  ),
+ * )
+ */
 
 #[ORM\Entity(repositoryClass: PhoneRepository::class)]
 class Phone

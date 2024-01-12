@@ -10,14 +10,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\SerializerInterface;
+// use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Service\JwtTokenService;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use JMS\Serializer\SerializerInterface;
+use JMS\Serializer\SerializationContext;
 
 class UserController extends AbstractController
 {
@@ -52,9 +53,12 @@ class UserController extends AbstractController
             } else {
                 return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
             }
-            $jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
-            
-            return new Response($jsonUsersList, Response::HTTP_OK, ['content-Type' => 'application/json']);
+            //$jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
+            $context = SerializationContext::create()->setGroups(['getUsers']);
+            $jsonUsersList = $serializer->serialize($usersList, 'json', $context);
+            $response = new Response($jsonUsersList, Response::HTTP_OK);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }

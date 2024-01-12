@@ -7,13 +7,11 @@ use App\Repository\PhoneRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Service\JwtTokenService;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use JMS\Serializer\SerializerInterface;
 
 class PhoneController extends AbstractController
 {
@@ -26,7 +24,7 @@ class PhoneController extends AbstractController
     
     #[Route('/api/phones', name: 'phones', methods:['GET'], defaults:['_role' => 'customer'])]
     public function getPhoneList(PhoneRepository $phoneRepository,
-    Request $request): Response
+    Request $request, SerializerInterface $serializer): Response
     {
         try {            
             $page = $request->get('page', 1);
@@ -34,7 +32,11 @@ class PhoneController extends AbstractController
             if ($page > 0 && $limit > 0 && $limit <= 50)
             {
                 $phoneList = $phoneRepository->findAllWithPagination($page, $limit);
-                return $this->json($phoneList, Response::HTTP_OK, []);
+                //return $this->json($phoneList, Response::HTTP_OK, []);
+                $jsonContent = $serializer->serialize($phoneList, 'json');
+                $response = new Response($jsonContent, Response::HTTP_OK);
+                $response->headers->set('Content-Type', 'application/json');
+                return $response;
             } else {
                 return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
             }
