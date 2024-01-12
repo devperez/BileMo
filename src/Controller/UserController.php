@@ -53,7 +53,6 @@ class UserController extends AbstractController
             } else {
                 return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
             }
-            //$jsonUsersList = $serializer->serialize($usersList, 'json', ['groups' => 'getUsers']);
             $context = SerializationContext::create()->setGroups(['getUsers']);
             $jsonUsersList = $serializer->serialize($usersList, 'json', $context);
             $response = new Response($jsonUsersList, Response::HTTP_OK);
@@ -82,9 +81,11 @@ class UserController extends AbstractController
             if ($authenticatedCustomer !== $user->getCustomer()) {
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
             }
-            $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
-                
-            return new Response($jsonUser, Response::HTTP_OK, ['content-Type' => 'application/json']);
+            $context = SerializationContext::create()->setGroups(['getUsers']);
+            $jsonUser = $serializer->serialize($user, 'json', $context);
+            $response = new Response($jsonUser, Response::HTTP_OK);
+            $response->headers->set('Content-Type', 'application/json');
+            return $response;
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
@@ -149,7 +150,9 @@ class UserController extends AbstractController
             $user->setCustomer($customer);
             $emi->persist($user);
             $emi->flush();
-            $jsonUser = $serializer->serialize($user,'json',['groups' => 'getUsers']);
+
+            $context = SerializationContext::create()->setGroups(['getUsers']); 
+            $jsonUser = $serializer->serialize($user, 'json', $context);
             $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
     
             return new Response($jsonUser, Response::HTTP_CREATED, ["Location" => $location, 'content-Type' => 'application/json']);
