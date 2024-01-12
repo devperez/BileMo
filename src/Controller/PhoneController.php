@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Service\JwtTokenService;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -27,9 +28,7 @@ class PhoneController extends AbstractController
     public function getPhoneList(PhoneRepository $phoneRepository,
     Request $request): Response
     {
-        try {
-            //$customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
-            
+        try {            
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
             $phoneList = $phoneRepository->findAllWithPagination($page, $limit);
@@ -42,10 +41,15 @@ class PhoneController extends AbstractController
 
     
     #[Route('/api/phones/{id}', name: 'detailPhone', methods:['GET'], defaults:['_role' => 'customer'])]
-    public function getPhoneDetail(Request $request, Phone $phone): Response
+    public function getPhoneDetail(Request $request, Phone $phone, CacheInterface $cache, PhoneRepository $phoneRepository): Response
     {
         try {
-            // $customerMail = $this->jwtTokenService->getCustomerMailFromRequest($request);
+            $phoneId = $phone->getId();
+            $idCache = "PhoneDetail-". $phoneId;
+            $phoneDetails = $cache->get($idCache, function (ItemInterface $item) use ($phoneId, $phoneRepository){
+                $phone = $phoneRepository->find($phoneId);
+                return $phone;    
+            });
             return $this->json($phone, Response::HTTP_OK, []);
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
