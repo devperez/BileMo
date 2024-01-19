@@ -7,6 +7,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Doctrine\DBAL\Exception as DBALException;
+
 
 class ExceptionSubscriber implements EventSubscriberInterface
 {
@@ -19,6 +21,13 @@ class ExceptionSubscriber implements EventSubscriberInterface
             $data = [
                 'status' => $exception->getStatusCode(),
                 'message' => $exception->getMessage()
+            ];
+            $event->setResponse(new JsonResponse($data));
+        } elseif ($exception instanceof DBALexception)
+        {
+            $data = [
+                'status' => 500,
+                'message' => 'Erreur de base de données:' . $exception->getMEssage(),
             ];
             $event->setResponse(new JsonResponse($data));
         } else {
