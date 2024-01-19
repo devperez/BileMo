@@ -32,10 +32,10 @@ class PhoneController extends AbstractController
             if ($page > 0 && $limit > 0 && $limit <= 50)
             {
                 $phoneList = $phoneRepository->findAllWithPagination($page, $limit);
-                //return $this->json($phoneList, Response::HTTP_OK, []);
-                $jsonContent = $serializer->serialize($phoneList, 'json');
-                $response = new Response($jsonContent, Response::HTTP_OK);
-                $response->headers->set('Content-Type', 'application/json');
+                $response = new Response($serializer->serialize($phoneList, 'json'),
+                            Response::HTTP_OK,
+                            ['Content-Type' => 'application/json']
+                        );
                 return $response;
             } else {
                 return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');

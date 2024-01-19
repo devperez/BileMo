@@ -54,9 +54,10 @@ class UserController extends AbstractController
                 return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
             }
             $context = SerializationContext::create()->setGroups(['getUsers']);
-            $jsonUsersList = $serializer->serialize($usersList, 'json', $context);
-            $response = new Response($jsonUsersList, Response::HTTP_OK);
-            $response->headers->set('Content-Type', 'application/json');
+            $response = new Response($serializer->serialize($usersList, 'json', $context),
+                        Response::HTTP_OK,
+                        ['Content-Type' => 'application/json']
+                        );
             return $response;
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
@@ -82,9 +83,10 @@ class UserController extends AbstractController
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
             }
             $context = SerializationContext::create()->setGroups(['getUsers']);
-            $jsonUser = $serializer->serialize($user, 'json', $context);
-            $response = new Response($jsonUser, Response::HTTP_OK);
-            $response->headers->set('Content-Type', 'application/json');
+            $response = new Response($serializer->serialize($user, 'json', $context),
+                        Response::HTTP_OK,
+                        ['Content-Type' => 'application/json']
+                        );
             return $response;
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
