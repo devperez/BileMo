@@ -12,6 +12,9 @@ use App\Service\JwtTokenService;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use JMS\Serializer\SerializerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class PhoneController extends AbstractController
 {
@@ -23,6 +26,28 @@ class PhoneController extends AbstractController
     }
     /**
      * Fetch the whole phone catalogue
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns the whole list of phones",
+     *     @OA\JsonContent(
+     *         type="array",
+     *         @OA\Items(ref=@Model(type=Phone::class))
+     *     )
+     * )
+     * @OA\Parameter(
+     *      name="page",
+     *      in="query",
+     *      description="La page que l'on souhaite récupérer",
+     *      @OA\Schema(type="int")
+     * )
+     * @OA\Parameter(
+     *      name="limit",
+     *      in="query",
+     *      description="Le nombre d'éléments que l'on souhaite récupérer",
+     *      @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Phones")
      */
     #[Route('/api/phones', name: 'phones', methods:['GET'], defaults:['_role' => 'customer'])]
     public function getPhoneList(PhoneRepository $phoneRepository,
@@ -49,6 +74,16 @@ class PhoneController extends AbstractController
 
     /**
      * Fetch a particular phone
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns a phone in particular",
+     *     @OA\JsonContent(
+     *         type="array",
+     *         @OA\Items(ref=@Model(type=Phone::class))
+     *     )
+     * )
+     * @OA\Tag(name="Phones")
      */
     #[Route('/api/phones/{id}', name: 'detailPhone', methods:['GET'], defaults:['_role' => 'customer'])]
     public function getPhoneDetail(Request $request, Phone $phone, CacheInterface $cache, PhoneRepository $phoneRepository): Response

@@ -19,6 +19,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Annotations as OA;
 
 class UserController extends AbstractController
 {
@@ -31,6 +34,28 @@ class UserController extends AbstractController
 
     /**
      * Fetch the users of an authenticated customer
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns the list of users associated to this customer",
+     *     @OA\JsonContent(
+     *         type="array",
+     *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+     *     )
+     * )
+     * @OA\Parameter(
+     *      name="page",
+     *      in="query",
+     *      description="La page que l'on souhaite récupérer",
+     *      @OA\Schema(type="int")
+     * )
+     * @OA\Parameter(
+     *      name="limit",
+     *      in="query",
+     *      description="Le nombre d'éléments que l'on souhaite récupérer",
+     *      @OA\Schema(type="int")
+     * )
+     * @OA\Tag(name="Users")
      */
     #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults:['_role' => 'customer'])]
     public function getCustomerUserList(UserRepository $userRepository,
@@ -66,6 +91,17 @@ class UserController extends AbstractController
 
     /**
      * Fetch a user of an authenticated customer
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Returns a specific user associated to this customer",
+     *     @OA\JsonContent(
+     *         type="array",
+     *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+     *     )
+     * )
+     * @OA\Tag(name="Users")
+
      */
     #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'], defaults:['_role' => 'customer'])]
     public function getUserDetail(Request $request, CustomerRepository $customerRepository, UserRepository $userRepository, SerializerInterface $serializer, $id): Response
@@ -95,6 +131,16 @@ class UserController extends AbstractController
 
     /**
      * Delete a user of an authenticated customer
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Delete a specific user associated to this customer",
+     *     @OA\JsonContent(
+     *         type="array",
+     *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+     *     )
+     * )
+     * @OA\Tag(name="Users")
      */
     #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'], defaults:['_role' => 'customer'])]
     public function deleteUser(Request $request,
@@ -128,6 +174,16 @@ class UserController extends AbstractController
 
     /**
      * Create and attach a customer to a user
+     * 
+     * @OA\Response(
+     *     response=200,
+     *     description="Create a user and associate him/her to this customer",
+     *     @OA\JsonContent(
+     *         type="array",
+     *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+     *     )
+     * )
+     * @OA\Tag(name="Users")
      */
     #[Route('api/users', name:"createUser", methods:['POST'], defaults:['_role' => 'customer'])]
     public function createUser(Request $request,

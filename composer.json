@@ -32,7 +32,8 @@
         "symfony/yaml": "6.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0",
-        "willdurand/hateoas-bundle": "^2.6"
+        "willdurand/hateoas-bundle": "^2.6",
+        "zircote/swagger-php": "^4.8"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.5",
