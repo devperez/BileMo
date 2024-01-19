@@ -29,7 +29,7 @@ class PhoneController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Returns the whole list of phones",
+     *     description="Retourne la liste des téléphones",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=Phone::class))
@@ -38,13 +38,13 @@ class PhoneController extends AbstractController
      * @OA\Parameter(
      *      name="page",
      *      in="query",
-     *      description="La page que l'on souhaite récupérer",
+     *      description="La page que l'on souhaite récupérer :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Parameter(
      *      name="limit",
      *      in="query",
-     *      description="Le nombre d'éléments que l'on souhaite récupérer",
+     *      description="Le nombre d'éléments que l'on souhaite récupérer :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Tag(name="Phones")
@@ -77,7 +77,7 @@ class PhoneController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Returns a phone in particular",
+     *     description="Retourne un téléphone en particulier",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=Phone::class))

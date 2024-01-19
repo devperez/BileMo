@@ -37,7 +37,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Returns the list of users associated to this customer",
+     *     description="Retourne la liste des utilisateurs associés au client authentifié",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -46,13 +46,13 @@ class UserController extends AbstractController
      * @OA\Parameter(
      *      name="page",
      *      in="query",
-     *      description="La page que l'on souhaite récupérer",
+     *      description="La page que l'on souhaite récupérer :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Parameter(
      *      name="limit",
      *      in="query",
-     *      description="Le nombre d'éléments que l'on souhaite récupérer",
+     *      description="Le nombre d'éléments que l'on souhaite récupérer :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Tag(name="Users")
@@ -94,7 +94,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Returns a specific user associated to this customer",
+     *     description="Retourne un utilisateur specifique associé au client authentifié",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -134,7 +134,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Delete a specific user associated to this customer",
+     *     description="Supprime un utilisateur spécifique associé au client authentifié",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -177,11 +177,24 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Create a user and associate him/her to this customer",
+     *     description="Crée un utilisateur et l'associe au client authentifié",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
      *     )
+     * )
+     * @OA\RequestBody(
+     *      request="createUser",
+     *      description="Données de l'utilisateur à créer",
+     *      required=true,
+     *      @OA\JsonContent(
+     *          type="object",
+     *          @OA\Property(property="firstName", type="property_type", example="John"),
+     *          @OA\Property(property="lastName", type="property_type", example="Doe"),
+     *          @OA\Property(property="userName", type="property_type", example="john_doe"),
+     *          @OA\Property(property="email", type="property_type", example="john.doe@example.com"),
+     *          @OA\Property(property="customer_id", type="property_type", example="c2f429c3-635b-4d7b-9069-ce28eb270711")
+     *      )
      * )
      * @OA\Tag(name="Users")
      */
