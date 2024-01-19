@@ -21,7 +21,9 @@ class PhoneController extends AbstractController
     {
         $this->jwtTokenService = $jwtTokenService;
     }
-    
+    /**
+     * Fetch the whole phone catalogue
+     */
     #[Route('/api/phones', name: 'phones', methods:['GET'], defaults:['_role' => 'customer'])]
     public function getPhoneList(PhoneRepository $phoneRepository,
     Request $request, SerializerInterface $serializer): Response
@@ -45,7 +47,9 @@ class PhoneController extends AbstractController
         }
     }
 
-    
+    /**
+     * Fetch a particular phone
+     */
     #[Route('/api/phones/{id}', name: 'detailPhone', methods:['GET'], defaults:['_role' => 'customer'])]
     public function getPhoneDetail(Request $request, Phone $phone, CacheInterface $cache, PhoneRepository $phoneRepository): Response
     {
