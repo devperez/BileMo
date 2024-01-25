@@ -2,7 +2,7 @@ nelmio_api_doc:
     documentation:
         info:
             title: BileMo
-            description: Une API pour accéder à vos clients ainsi qu'au catalogue de téléphones
+            description: An API to manage your customers and a phone catalogue
             version: 1.0.0
         paths:
             /api/login_check:
@@ -10,16 +10,16 @@ nelmio_api_doc:
                     operationId: postCredentialsItem
                     tags:
                         - Token
-                    summary: Permet d'obtenir le token JWT pour se logger.
+                    summary: Get the JWT token to log in.
                     requestBody:
-                        description: Crée un nouveau token JWT
+                        description: Create a new JWT token
                         content:
                             application/json:
                                 schema:
                                     $ref: '#/components/schemas/Credentials'
                     responses:
                         '200':
-                            description: Récupère le token JWT
+                            description: Fetch the JWT token
                             content:
                                 application/json:
                                     schema:
