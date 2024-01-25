@@ -20,7 +20,6 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Annotations as OA;
 
 class UserController extends AbstractController
@@ -57,7 +56,9 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      */
-    #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults:['_role' => 'customer'])]
+    #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults:[
+        '_role' => 'customer',
+    ])]
     public function getCustomerUserList(UserRepository $userRepository,
     CustomerRepository $customerRepository,
     Request $request,
@@ -81,7 +82,9 @@ class UserController extends AbstractController
             $context = SerializationContext::create()->setGroups(['getUsers']);
             $response = new Response($serializer->serialize($usersList, 'json', $context),
                         Response::HTTP_OK,
-                        ['Content-Type' => 'application/json']
+                        [
+                            'Content-Type' => 'application/json',
+                        ]
                         );
             return $response;
         } catch (\Exception $e) {
@@ -103,7 +106,9 @@ class UserController extends AbstractController
      * @OA\Tag(name="Users")
 
      */
-    #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'], defaults:['_role' => 'customer'])]
+    #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'], defaults:[
+        '_role' => 'customer',
+    ])]
     public function getUserDetail(Request $request, CustomerRepository $customerRepository, UserRepository $userRepository, SerializerInterface $serializer, $id): Response
     {
         try {
@@ -114,14 +119,18 @@ class UserController extends AbstractController
             if (!$user) {
                 return new Response('Utilisateur non trouvé.', Response::HTTP_NOT_FOUND);
             }
-            $authenticatedCustomer = $customerRepository->findOneBy(['id' => $customerId]);
+            $authenticatedCustomer = $customerRepository->findOneBy([
+                'id' => $customerId,
+            ]);
             if ($authenticatedCustomer !== $user->getCustomer()) {
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
             }
             $context = SerializationContext::create()->setGroups(['getUsers']);
             $response = new Response($serializer->serialize($user, 'json', $context),
                         Response::HTTP_OK,
-                        ['Content-Type' => 'application/json']
+                        [
+                            'Content-Type' => 'application/json',
+                        ]
                         );
             return $response;
         } catch (\Exception $e) {
@@ -142,7 +151,9 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      */
-    #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'], defaults:['_role' => 'customer'])]
+    #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'], defaults:[
+        '_role' => 'customer',
+    ])]
     public function deleteUser(Request $request,
     UserRepository $userRepository,
     CustomerRepository $customerRepository,
@@ -158,7 +169,9 @@ class UserController extends AbstractController
             if (!$user) {
                 return new Response('Utilisateur non trouvé.', Response::HTTP_NOT_FOUND);
             }
-            $authenticatedCustomer = $customerRepository->findOneBy(['id' => $customerId]);
+            $authenticatedCustomer = $customerRepository->findOneBy([
+                'id' => $customerId,
+            ]);
 
             if ($authenticatedCustomer !== $user->getCustomer()) {
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
@@ -198,7 +211,9 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      */
-    #[Route('api/users', name:"createUser", methods:['POST'], defaults:['_role' => 'customer'])]
+    #[Route('api/users', name:"createUser", methods:['POST'], defaults:[
+        '_role' => 'customer',
+    ])]
     public function createUser(Request $request,
     SerializerInterface $serializer,
     CustomerRepository $customerRepository,
@@ -217,16 +232,23 @@ class UserController extends AbstractController
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
             $cache->invalidateTags(['usersCache']);
-            $customer = $customerRepository->findOneBy(['id' => $customerId]);
+            $customer = $customerRepository->findOneBy([
+                'id' => $customerId,
+            ]);
             $user->setCustomer($customer);
             $emi->persist($user);
             $emi->flush();
 
             $context = SerializationContext::create()->setGroups(['getUsers']); 
             $jsonUser = $serializer->serialize($user, 'json', $context);
-            $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            $location = $urlGenerator->generate('detailUser', [
+                'id' => $user->getId(),
+            ], UrlGeneratorInterface::ABSOLUTE_URL);
     
-            return new Response($jsonUser, Response::HTTP_CREATED, ["Location" => $location, 'content-Type' => 'application/json']);
+            return new Response($jsonUser, Response::HTTP_CREATED, [
+                "Location" => $location,
+                'content-Type' => 'application/json',
+            ]);
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }

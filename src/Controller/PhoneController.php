@@ -13,7 +13,6 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Annotations as OA;
 
 class PhoneController extends AbstractController
@@ -49,7 +48,9 @@ class PhoneController extends AbstractController
      * )
      * @OA\Tag(name="Phones")
      */
-    #[Route('/api/phones', name: 'phones', methods:['GET'], defaults:['_role' => 'customer'])]
+    #[Route('/api/phones', name: 'phones', methods:['GET'], defaults:[
+        '_role' => 'customer',
+    ])]
     public function getPhoneList(PhoneRepository $phoneRepository,
     Request $request, SerializerInterface $serializer): Response
     {
@@ -61,7 +62,9 @@ class PhoneController extends AbstractController
                 $phoneList = $phoneRepository->findAllWithPagination($page, $limit);
                 $response = new Response($serializer->serialize($phoneList, 'json'),
                             Response::HTTP_OK,
-                            ['Content-Type' => 'application/json']
+                            [
+                                'Content-Type' => 'application/json',
+                            ]
                         );
                 return $response;
             } else {
@@ -85,7 +88,9 @@ class PhoneController extends AbstractController
      * )
      * @OA\Tag(name="Phones")
      */
-    #[Route('/api/phones/{id}', name: 'detailPhone', methods:['GET'], defaults:['_role' => 'customer'])]
+    #[Route('/api/phones/{id}', name: 'detailPhone', methods:['GET'], defaults:[
+        '_role' => 'customer',
+    ])]
     public function getPhoneDetail(Request $request, Phone $phone, CacheInterface $cache, PhoneRepository $phoneRepository): Response
     {
         try {

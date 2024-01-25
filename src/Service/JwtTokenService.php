@@ -26,7 +26,9 @@ class JwtTokenService
             try {
                 $decodedToken = $this->jwtManager->decode($this->tokenStorage->getToken());
                 $customerMail = $decodedToken['username'];
-                $customer = $customerRepository->findOneBy(['email' => $customerMail]);
+                $customer = $customerRepository->findOneBy([
+                    'email' => $customerMail,
+                ]);
                 $customerId = $customer->getId();
                 return $customerId;
             } catch (\Exception $e) {
