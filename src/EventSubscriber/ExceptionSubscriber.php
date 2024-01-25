@@ -2,12 +2,12 @@
 
 namespace App\EventSubscriber;
 
+use App\Exception\DatabaseException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Doctrine\DBAL\Exception as DBALException;
 
 
 class ExceptionSubscriber implements EventSubscriberInterface
@@ -23,11 +23,11 @@ class ExceptionSubscriber implements EventSubscriberInterface
                 'message' => $exception->getMessage()
             ];
             $event->setResponse(new JsonResponse($data));
-        } elseif ($exception instanceof DBALexception)
+        } elseif ($exception instanceof DatabaseException)
         {
             $data = [
-                'status' => 500,
-                'message' => 'Erreur de base de données:' . $exception->getMessage(),
+                'status' => $exception->getCode(),
+                'message' => $exception->getMessage(),
             ];
             $event->setResponse(new JsonResponse($data));
         } else {
