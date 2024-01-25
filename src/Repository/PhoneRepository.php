@@ -30,6 +30,14 @@ class PhoneRepository extends ServiceEntityRepository
         return $qp->getQuery()->getResult();
     }
 
+    public function countAll()
+    {
+        return $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
 //    /**
 //     * @return Phone[] Returns an array of Phone objects
 //     */
