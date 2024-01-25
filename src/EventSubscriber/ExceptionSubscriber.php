@@ -27,7 +27,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
         {
             $data = [
                 'status' => 500,
-                'message' => 'Erreur de base de données:' . $exception->getMEssage(),
+                'message' => 'Erreur de base de données:' . $exception->getMessage(),
             ];
             $event->setResponse(new JsonResponse($data));
         } else {

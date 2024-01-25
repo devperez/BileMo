@@ -37,7 +37,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Retourne la liste des utilisateurs associés au client authentifié",
+     *     description="Returns a list of users associated to the authenticated customer",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -46,13 +46,13 @@ class UserController extends AbstractController
      * @OA\Parameter(
      *      name="page",
      *      in="query",
-     *      description="La page que l'on souhaite récupérer :",
+     *      description="The page you wish to fetch :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Parameter(
      *      name="limit",
      *      in="query",
-     *      description="Le nombre d'éléments que l'on souhaite récupérer :",
+     *      description="The number of elements you wish to fetch :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Tag(name="Users")
@@ -76,7 +76,7 @@ class UserController extends AbstractController
                     return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
                 });
             } else {
-                return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
+                return new Response('The limit parameter must be a positive integer inferior to 51.');
             }
             $context = SerializationContext::create()->setGroups(['getUsers']);
             $response = new Response($serializer->serialize($usersList, 'json', $context),
@@ -94,7 +94,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Retourne un utilisateur specifique associé au client authentifié",
+     *     description="Returns a user associated to the authenticated customer",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -134,7 +134,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Supprime un utilisateur spécifique associé au client authentifié",
+     *     description="Deletes a user associated to the authenticated customer",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -177,7 +177,7 @@ class UserController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Crée un utilisateur et l'associe au client authentifié",
+     *     description="Creates and associates a user to the authenticated customer",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
@@ -185,7 +185,7 @@ class UserController extends AbstractController
      * )
      * @OA\RequestBody(
      *      request="createUser",
-     *      description="Données de l'utilisateur à créer",
+     *      description="User's data",
      *      required=true,
      *      @OA\JsonContent(
      *          type="object",

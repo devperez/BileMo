@@ -29,7 +29,7 @@ class PhoneController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Retourne la liste des téléphones",
+     *     description="Returns the whole phone list",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=Phone::class))
@@ -38,13 +38,13 @@ class PhoneController extends AbstractController
      * @OA\Parameter(
      *      name="page",
      *      in="query",
-     *      description="La page que l'on souhaite récupérer :",
+     *      description="The page you wish to fetch :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Parameter(
      *      name="limit",
      *      in="query",
-     *      description="Le nombre d'éléments que l'on souhaite récupérer :",
+     *      description="The number of elements you wish to fetch :",
      *      @OA\Schema(type="int")
      * )
      * @OA\Tag(name="Phones")
@@ -65,7 +65,7 @@ class PhoneController extends AbstractController
                         );
                 return $response;
             } else {
-                return new Response('Le paramètre limit doit être un entier positif et inférieur à 51.');
+                return new Response('The limit parameter must be a positive integer inferior to 51.');
             }
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
@@ -77,7 +77,7 @@ class PhoneController extends AbstractController
      * 
      * @OA\Response(
      *     response=200,
-     *     description="Retourne un téléphone en particulier",
+     *     description="Returns a phone",
      *     @OA\JsonContent(
      *         type="array",
      *         @OA\Items(ref=@Model(type=Phone::class))
