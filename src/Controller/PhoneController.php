@@ -14,7 +14,6 @@ use Symfony\Contracts\Cache\ItemInterface;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
-use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PhoneController extends AbstractController
@@ -71,8 +70,14 @@ class PhoneController extends AbstractController
                 $phoneList = $phoneRepository->findAllWithPagination($page, $limit);
                 $totalItems = $phoneRepository->countAll();
                 $totalPages = ceil($totalItems / $limit);
-                $nextPage = $page < $totalPages ? $this->generateUrl('phones', ['page' => $page + 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
-                $prevPage = $page > 1 ? $this->generateUrl('phones', ['page' => $page - 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                $nextPage = $page < $totalPages ? $this->generateUrl('phones', [
+                    'page' => $page + 1,
+                    'limit' => $limit,
+                ], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                $prevPage = $page > 1 ? $this->generateUrl('phones', [
+                    'page' => $page - 1,
+                    'limit' => $limit,
+                ], UrlGeneratorInterface::ABSOLUTE_URL) : null;
                 $response = new Response(
                     $serializer->serialize([
                         'items' => $phoneList,
