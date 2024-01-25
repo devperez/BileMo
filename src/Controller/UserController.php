@@ -38,55 +38,77 @@ class UserController extends AbstractController
      *     response=200,
      *     description="Returns a list of users associated to the authenticated customer",
      *     @OA\JsonContent(
-     *         type="array",
-     *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+     *         type="object",
+     *         @OA\Property(property="items", type="array", @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))),
+     *         @OA\Property(property="page", type="integer"),
+     *         @OA\Property(property="limit", type="integer"),
+     *         @OA\Property(property="totalItems", type="integer"),
+     *         @OA\Property(property="totalPages", type="integer"),
+     *         @OA\Property(property="nextPage", type="string", description="Link to the next page"),
+     *         @OA\Property(property="prevPage", type="string", description="Link to the previous page"),
+     *         @OA\Property(property="context", type="string", description="Serialization context"), 
      *     )
      * )
      * @OA\Parameter(
      *      name="page",
      *      in="query",
      *      description="The page you wish to fetch :",
-     *      @OA\Schema(type="int")
+     *      @OA\Schema(type="int", default=1)
      * )
      * @OA\Parameter(
      *      name="limit",
      *      in="query",
      *      description="The number of elements you wish to fetch :",
-     *      @OA\Schema(type="int")
+     *      @OA\Schema(type="int", default=5)
      * )
      * @OA\Tag(name="Users")
      */
-    #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults:[
+    #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults: [
         '_role' => 'customer',
     ])]
-    public function getCustomerUserList(UserRepository $userRepository,
-    CustomerRepository $customerRepository,
-    Request $request,
-    SerializerInterface $serializer,
-    TagAwareCacheInterface $cache): Response
-    {
+    public function getCustomerUserList(
+        UserRepository $userRepository,
+        CustomerRepository $customerRepository,
+        Request $request,
+        SerializerInterface $serializer,
+        TagAwareCacheInterface $cache
+    ): Response {
         try {
             $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
             $page = $request->get('page', 1);
             $limit = $request->get('limit', 5);
-            $idCache = "CustomerUserList-".$page."-".$limit.$customerId;
-            if ($page > 0 && $limit > 0 && $limit <= 50)
-            {
-                $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit){
+            $idCache = "CustomerUserList-" . $page . "-" . $limit . $customerId;
+            if ($page > 0 && $limit > 0 && $limit <= 50) {
+                $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit) {
                     $item->tag('usersCache');
                     return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
                 });
+
+                $totalItems = $userRepository->countAllByCustomer($customerId);
+                $totalPages = ceil($totalItems / $limit);
+                $nextPage = $page < $totalPages ? $this->generateUrl('CustomerUserList', ['page' => $page + 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                $prevPage = $page > 1 ? $this->generateUrl('CustomerUserList', ['page' => $page - 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                $context = SerializationContext::create()->setGroups(['getUsers']);
+                $response = new Response(
+                    $serializer->serialize([
+                        'items' => $usersList,
+                        'page' => $page,
+                        'limit' => $limit,
+                        'totalItems' => $totalItems,
+                        'totalPages' => $totalPages,
+                        'nextPage' => $nextPage,
+                        'prevPage' => $prevPage,
+                        'context' => $context,
+                    ], 'json'),
+                    Response::HTTP_OK,
+                    [
+                        'Content-Type' => 'application/json',
+                    ]
+                );
+                return $response;
             } else {
                 return new Response('The limit parameter must be a positive integer inferior to 51.');
             }
-            $context = SerializationContext::create()->setGroups(['getUsers']);
-            $response = new Response($serializer->serialize($usersList, 'json', $context),
-                        Response::HTTP_OK,
-                        [
-                            'Content-Type' => 'application/json',
-                        ]
-                        );
-            return $response;
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
@@ -106,7 +128,7 @@ class UserController extends AbstractController
      * @OA\Tag(name="Users")
 
      */
-    #[Route('/api/users/{id}', name: 'detailUser', methods:['GET'], defaults:[
+    #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'], defaults: [
         '_role' => 'customer',
     ])]
     public function getUserDetail(Request $request, CustomerRepository $customerRepository, UserRepository $userRepository, SerializerInterface $serializer, $id): Response
@@ -126,12 +148,13 @@ class UserController extends AbstractController
                 return new Response('Accès interdit.', Response::HTTP_FORBIDDEN);
             }
             $context = SerializationContext::create()->setGroups(['getUsers']);
-            $response = new Response($serializer->serialize($user, 'json', $context),
-                        Response::HTTP_OK,
-                        [
-                            'Content-Type' => 'application/json',
-                        ]
-                        );
+            $response = new Response(
+                $serializer->serialize($user, 'json', $context),
+                Response::HTTP_OK,
+                [
+                    'Content-Type' => 'application/json',
+                ]
+            );
             return $response;
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
@@ -151,16 +174,17 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      */
-    #[Route('api/users/{id}', name:'deleteUser', methods:['DELETE'], defaults:[
+    #[Route('api/users/{id}', name: 'deleteUser', methods: ['DELETE'], defaults: [
         '_role' => 'customer',
     ])]
-    public function deleteUser(Request $request,
-    UserRepository $userRepository,
-    CustomerRepository $customerRepository,
-    $id,
-    EntityManagerInterface $emi,
-    TagAwareCacheInterface $cache): Response
-    {
+    public function deleteUser(
+        Request $request,
+        UserRepository $userRepository,
+        CustomerRepository $customerRepository,
+        $id,
+        EntityManagerInterface $emi,
+        TagAwareCacheInterface $cache
+    ): Response {
         try {
             $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
             // Fetch the User entity manually using the UserRepository
@@ -211,24 +235,24 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      */
-    #[Route('api/users', name:"createUser", methods:['POST'], defaults:[
+    #[Route('api/users', name: "createUser", methods: ['POST'], defaults: [
         '_role' => 'customer',
     ])]
-    public function createUser(Request $request,
-    SerializerInterface $serializer,
-    CustomerRepository $customerRepository,
-    EntityManagerInterface $emi,
-    UrlGeneratorInterface $urlGenerator,
-    ValidatorInterface $validator,
-    TagAwareCacheInterface $cache): Response
-    {
+    public function createUser(
+        Request $request,
+        SerializerInterface $serializer,
+        CustomerRepository $customerRepository,
+        EntityManagerInterface $emi,
+        UrlGeneratorInterface $urlGenerator,
+        ValidatorInterface $validator,
+        TagAwareCacheInterface $cache
+    ): Response {
         try {
             $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
             $user = $serializer->deserialize($request->getContent(), User::class, 'json');
             // Data validation
             $errors = $validator->validate($user);
-            if ($errors->count() > 0)
-            {
+            if ($errors->count() > 0) {
                 return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
             }
             $cache->invalidateTags(['usersCache']);
@@ -239,12 +263,12 @@ class UserController extends AbstractController
             $emi->persist($user);
             $emi->flush();
 
-            $context = SerializationContext::create()->setGroups(['getUsers']); 
+            $context = SerializationContext::create()->setGroups(['getUsers']);
             $jsonUser = $serializer->serialize($user, 'json', $context);
             $location = $urlGenerator->generate('detailUser', [
                 'id' => $user->getId(),
             ], UrlGeneratorInterface::ABSOLUTE_URL);
-    
+
             return new Response($jsonUser, Response::HTTP_CREATED, [
                 "Location" => $location,
                 'content-Type' => 'application/json',
