@@ -65,9 +65,9 @@ class PhoneController extends AbstractController
      * )
      * @OA\Tag(name="Phones")
      * 
-     * @param PhoneRepository $phoneRepository
-     * @param Request $request
-     * @param SerializerInterface $serializer
+     * @param PhoneRepository $phoneRepository The phone repository
+     * @param Request $request The HTTP request
+     * @param SerializerInterface $serializer The serializer service
      * @return Response
      */
     #[Route('/api/phones', name: 'phones', methods: ['GET'], defaults: [
@@ -129,10 +129,10 @@ class PhoneController extends AbstractController
      * )
      * @OA\Tag(name="Phones")
      * 
-     * @param Request $request
-     * @param Phone $phone
-     * @param CacheInterface $cache
-     * @param PhoneRepository $phoneRepository
+     * @param Request $request The HTTP request
+     * @param Phone $phone The phone entity
+     * @param CacheInterface $cache The cache service
+     * @param PhoneRepository $phoneRepository The phone repository
      * @return Response
      */
     #[Route('/api/phones/{id}', name: 'detailPhone', methods: ['GET'], defaults: [

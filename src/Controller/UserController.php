@@ -73,11 +73,11 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      * 
-     * @param UserRepository $userRepository
-     * @param CustomerRepository $customerRepository
-     * @param Request $request
-     * @param SerializerInterface $serializer
-     * @param TagAwareCacheInterface $cache
+     * @param UserRepository $userRepository The user repository
+     * @param CustomerRepository $customerRepository The customer repository
+     * @param Request $request The HTTP request
+     * @param SerializerInterface $serializer The serializer service
+     * @param TagAwareCacheInterface $cache The cache service
      * @return Response
      */
     #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults: [
@@ -150,11 +150,11 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      *
-     * @param Request $request
-     * @param CustomerRepository $customerRepository
-     * @param UserRepository $userRepository
-     * @param SerializerInterface $serializer
-     * @param $id
+     * @param Request $request The HTTP request
+     * @param CustomerRepository $customerRepository The customer repository
+     * @param UserRepository $userRepository The user repository
+     * @param SerializerInterface $serializer The serializer service
+     * @param $id The user id
      * @return Response
      */
     #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'], defaults: [
@@ -203,12 +203,12 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      * 
-     * @param Request $request
-     * @param UserRepository $userRepository
-     * @param CustomerRepository $customerRepository
-     * @param $id
-     * @param EntityManagerInterface $emi
-     * @param TagAwareCacheInterface $cache
+     * @param Request $request The HTTP request
+     * @param UserRepository $userRepository The user repository
+     * @param CustomerRepository $customerRepository The customer repository
+     * @param $id The user id
+     * @param EntityManagerInterface $emi The entity manager
+     * @param TagAwareCacheInterface $cache The cache service
      * @return Response
      */
     #[Route('api/users/{id}', name: 'deleteUser', methods: ['DELETE'], defaults: [
@@ -272,13 +272,13 @@ class UserController extends AbstractController
      * )
      * @OA\Tag(name="Users")
      * 
-     * @param Request $request
-     * @param SerializerInterface $serializer
-     * @param CustomerRepository $customerRepository
-     * @param EntityManagerInterface $emi
-     * @param UrlGeneratorInterface $urlGenerator
-     * @param ValidatorInterface $validator
-     * @param TagAwareCacheInterface $cache
+     * @param Request $request The HTTP request
+     * @param SerializerInterface $serializer The serializer service
+     * @param CustomerRepository $customerRepository The customer repository
+     * @param EntityManagerInterface $emi The entity manager
+     * @param UrlGeneratorInterface $urlGenerator The URL generator
+     * @param ValidatorInterface $validator The validator
+     * @param TagAwareCacheInterface $cache The cache service
      * @return Response
      */
     #[Route('api/users', name: "createUser", methods: ['POST'], defaults: [
