@@ -109,9 +109,8 @@ class PhoneController extends AbstractController
                     ]
                 );
                 return $response;
-            } else {
-                return new Response('The limit parameter must be a positive integer inferior to 51.');
-            }
+            } 
+            return new Response('The limit parameter must be a positive integer inferior to 51.');
         } catch (\Exception $e) {
             return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
