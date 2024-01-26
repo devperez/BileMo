@@ -10,7 +10,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-// use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,9 +21,20 @@ use JMS\Serializer\SerializationContext;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 
+/**
+ * Class UserController
+ */
 class UserController extends AbstractController
 {
+    /**
+     * @var JwtTokenService
+     */
     private $jwtTokenService;
+
+    /**
+     * UserController constructor.
+     * @param JwtTokenService $jwtTokenService
+     */
 
     public function __construct(JwtTokenService $jwtTokenService)
     {
@@ -62,6 +72,13 @@ class UserController extends AbstractController
      *      @OA\Schema(type="int", default=5)
      * )
      * @OA\Tag(name="Users")
+     * 
+     * @param UserRepository $userRepository
+     * @param CustomerRepository $customerRepository
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param TagAwareCacheInterface $cache
+     * @return Response
      */
     #[Route('/api/users', name: 'CustomerUserList', methods: ['GET'], defaults: [
         '_role' => 'customer',
@@ -132,7 +149,13 @@ class UserController extends AbstractController
      *     )
      * )
      * @OA\Tag(name="Users")
-
+     *
+     * @param Request $request
+     * @param CustomerRepository $customerRepository
+     * @param UserRepository $userRepository
+     * @param SerializerInterface $serializer
+     * @param $id
+     * @return Response
      */
     #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'], defaults: [
         '_role' => 'customer',
@@ -179,6 +202,14 @@ class UserController extends AbstractController
      *     )
      * )
      * @OA\Tag(name="Users")
+     * 
+     * @param Request $request
+     * @param UserRepository $userRepository
+     * @param CustomerRepository $customerRepository
+     * @param $id
+     * @param EntityManagerInterface $emi
+     * @param TagAwareCacheInterface $cache
+     * @return Response
      */
     #[Route('api/users/{id}', name: 'deleteUser', methods: ['DELETE'], defaults: [
         '_role' => 'customer',
@@ -240,6 +271,15 @@ class UserController extends AbstractController
      *      )
      * )
      * @OA\Tag(name="Users")
+     * 
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param CustomerRepository $customerRepository
+     * @param EntityManagerInterface $emi
+     * @param UrlGeneratorInterface $urlGenerator
+     * @param ValidatorInterface $validator
+     * @param TagAwareCacheInterface $cache
+     * @return Response
      */
     #[Route('api/users', name: "createUser", methods: ['POST'], defaults: [
         '_role' => 'customer',
