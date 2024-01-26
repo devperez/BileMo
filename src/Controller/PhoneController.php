@@ -16,10 +16,20 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+/**
+ * Class PhoneController
+ */
 class PhoneController extends AbstractController
 {
+    /**
+     * @var JwtTokenService
+     */
     private $jwtTokenService;
 
+    /**
+     * PhoneController constructor.
+     * @param JwtTokenService $jwtTokenService
+     */
     public function __construct(JwtTokenService $jwtTokenService)
     {
         $this->jwtTokenService = $jwtTokenService;
@@ -54,6 +64,11 @@ class PhoneController extends AbstractController
      *      @OA\Schema(type="int", default=5)
      * )
      * @OA\Tag(name="Phones")
+     * 
+     * @param PhoneRepository $phoneRepository
+     * @param Request $request
+     * @param SerializerInterface $serializer
+     * @return Response
      */
     #[Route('/api/phones', name: 'phones', methods: ['GET'], defaults: [
         '_role' => 'customer',
@@ -114,6 +129,12 @@ class PhoneController extends AbstractController
      *     )
      * )
      * @OA\Tag(name="Phones")
+     * 
+     * @param Request $request
+     * @param Phone $phone
+     * @param CacheInterface $cache
+     * @param PhoneRepository $phoneRepository
+     * @return Response
      */
     #[Route('/api/phones/{id}', name: 'detailPhone', methods: ['GET'], defaults: [
         '_role' => 'customer',
