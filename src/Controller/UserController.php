@@ -39,14 +39,14 @@ class UserController extends AbstractController
      *     description="Returns a list of users associated to the authenticated customer",
      *     @OA\JsonContent(
      *         type="object",
-     *         @OA\Property(property="items", type="array", @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))),
+     *          @OA\Property(property="items", type="array", @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))),
      *         @OA\Property(property="page", type="integer"),
      *         @OA\Property(property="limit", type="integer"),
      *         @OA\Property(property="totalItems", type="integer"),
      *         @OA\Property(property="totalPages", type="integer"),
      *         @OA\Property(property="nextPage", type="string", description="Link to the next page"),
      *         @OA\Property(property="prevPage", type="string", description="Link to the previous page"),
-     *         @OA\Property(property="context", type="string", description="Serialization context"), 
+     *         @OA\Property(property="context", type="string", description="Serialization context"),
      *     )
      * )
      * @OA\Parameter(
@@ -72,47 +72,47 @@ class UserController extends AbstractController
         Request $request,
         SerializerInterface $serializer,
         TagAwareCacheInterface $cache
-    ): Response {
-        try {
-            $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
-            $page = $request->get('page', 1);
-            $limit = $request->get('limit', 5);
-            $idCache = "CustomerUserList-" . $page . "-" . $limit . $customerId;
-            if ($page > 0 && $limit > 0 && $limit <= 50) {
-                $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit) {
-                    $item->tag('usersCache');
-                    return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
-                });
-
-                $totalItems = $userRepository->countAllByCustomer($customerId);
-                $totalPages = ceil($totalItems / $limit);
-                $nextPage = $page < $totalPages ? $this->generateUrl('CustomerUserList', ['page' => $page + 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
-                $prevPage = $page > 1 ? $this->generateUrl('CustomerUserList', ['page' => $page - 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
-                $context = SerializationContext::create()->setGroups(['getUsers']);
-                $response = new Response(
-                    $serializer->serialize([
-                        'items' => $usersList,
-                        'page' => $page,
-                        'limit' => $limit,
-                        'totalItems' => $totalItems,
-                        'totalPages' => $totalPages,
-                        'nextPage' => $nextPage,
-                        'prevPage' => $prevPage,
-                        'context' => $context,
-                    ], 'json'),
-                    Response::HTTP_OK,
-                    [
-                        'Content-Type' => 'application/json',
-                    ]
-                );
-                return $response;
-            } else {
-                return new Response('The limit parameter must be a positive integer inferior to 51.');
+        ): Response
+        {
+            try {
+                $customerId = $this->jwtTokenService->getCustomerIdFromRequest($request, $customerRepository);
+                $page = $request->get('page', 1);
+                $limit = $request->get('limit', 5);
+                $idCache = "CustomerUserList-" . $page . "-" . $limit . $customerId;
+                if ($page > 0 && $limit > 0 && $limit <= 50) {
+                    $usersList = $cache->get($idCache, function (ItemInterface $item) use ($customerId, $userRepository, $page, $limit) {
+                        $item->tag('usersCache');
+                        return $userRepository->findAllWithPaginationByCustomer($customerId, $page, $limit);
+                    });
+                    $totalItems = $userRepository->countAllByCustomer($customerId);
+                    $totalPages = ceil($totalItems / $limit);
+                    $nextPage = $page < $totalPages ? $this->generateUrl('CustomerUserList', ['page' => $page + 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                    $prevPage = $page > 1 ? $this->generateUrl('CustomerUserList', ['page' => $page - 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                    $context = SerializationContext::create()->setGroups(['getUsers']);
+                    $response = new Response(
+                        $serializer->serialize([
+                            'items' => $usersList,
+                            'page' => $page,
+                            'limit' => $limit,
+                            'totalItems' => $totalItems,
+                            'totalPages' => $totalPages,
+                            'nextPage' => $nextPage,
+                            'prevPage' => $prevPage,
+                        ], 'json', $context),
+                        Response::HTTP_OK,
+                        [
+                            'Content-Type' => 'application/json',
+                        ]
+                    );
+                    return $response;
+                } else {
+                    return new Response('The limit parameter must be a positive integer inferior to 51.');
+                }
+            } catch (\Exception $e) {
+                return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
             }
-        } catch (\Exception $e) {
-            return new Response($e->getMessage(), Response::HTTP_UNAUTHORIZED);
         }
-    }
+
 
     /**
      * Fetch a user of an authenticated customer
