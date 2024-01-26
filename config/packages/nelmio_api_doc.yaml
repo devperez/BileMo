@@ -1,7 +1,5 @@
 nelmio_api_doc:
     documentation:
-        servers:
-            - url: http://127.0.0.1:8000/api/doc
         info:
             title: BileMo
             description: An API to manage your customers and a phone catalogue
