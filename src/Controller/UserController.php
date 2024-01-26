@@ -86,8 +86,14 @@ class UserController extends AbstractController
                     });
                     $totalItems = $userRepository->countAllByCustomer($customerId);
                     $totalPages = ceil($totalItems / $limit);
-                    $nextPage = $page < $totalPages ? $this->generateUrl('CustomerUserList', ['page' => $page + 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
-                    $prevPage = $page > 1 ? $this->generateUrl('CustomerUserList', ['page' => $page - 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                    $nextPage = $page < $totalPages ? $this->generateUrl('CustomerUserList', [
+                        'page' => $page + 1,
+                        'limit' => $limit,
+                    ], UrlGeneratorInterface::ABSOLUTE_URL) : null;
+                    $prevPage = $page > 1 ? $this->generateUrl('CustomerUserList', [
+                        'page' => $page - 1,
+                        'limit' => $limit,
+                    ], UrlGeneratorInterface::ABSOLUTE_URL) : null;
                     $context = SerializationContext::create()->setGroups(['getUsers']);
                     $response = new Response(
                         $serializer->serialize([
