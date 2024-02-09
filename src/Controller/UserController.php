@@ -247,7 +247,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Create and attach a customer to a user
+     * Create and attach a user to a customer
      * 
      * @OA\Response(
      *     response=200,
@@ -267,7 +267,6 @@ class UserController extends AbstractController
      *          @OA\Property(property="lastName", type="property_type", example="Doe"),
      *          @OA\Property(property="userName", type="property_type", example="john_doe"),
      *          @OA\Property(property="email", type="property_type", example="john.doe@example.com"),
-     *          @OA\Property(property="customer_id", type="property_type", example="c2f429c3-635b-4d7b-9069-ce28eb270711")
      *      )
      * )
      * @OA\Tag(name="Users")
